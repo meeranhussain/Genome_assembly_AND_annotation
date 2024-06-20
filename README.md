@@ -66,7 +66,7 @@ Note: In my case, two unmapped BAM files are produced after basecalling, one for
 
 ## STEP 2: Demultiplexing
 
-Tool used is Dorado "demux".
+Tool used is Dorado "demux". This process separates individual samples into unmapped BAM files within a library, using the names provided in the "alias" column of the previous sample sheet.
 
 ```bash
 #### Library : R0119
@@ -77,4 +77,16 @@ dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/uow03744/PX0
 
 #### Library : R0149
 dorado demux --output-dir /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/02_demux_sample/R0149 --no-classify /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
+```
+### STEP 3: BAM to Fastq conversion
+
+Tool used here is SAMtools "fastq". Unmapped individual BAM files are transformed into FASTQ files during this step.
+
+```bash
+#### Library : R0119
+for i in 03 04 05 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
+### Library : R0120
+for i in 03 04 05 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
+### Library : R0149
+for i in 06 40; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
 ```
