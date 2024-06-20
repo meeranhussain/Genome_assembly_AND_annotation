@@ -61,7 +61,7 @@ dorado basecaller sup /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/R0120/LX0030
 ### Library R0149
 dorado basecaller sup /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/03_R0149/LX0038/20240402_1733_1F_PAW14881_72e2c281/pod5_pass  --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0149.csv > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
 ```
-Note: In my case, two unmapped BAM files are produced after basecalling, one for each of the two libraries. Since running in slurm gpu node will be activated **"#SBATCH --gpus-per-node=A100:1"**
+Note: In my case, two unmapped BAM files are produced after basecalling, one for each of the two libraries. Since running in slurm gpu node is activated using following in config section **"#SBATCH --gpus-per-node=A100:1"**
 
 ## STEP 2: Demultiplexing
 
@@ -146,8 +146,75 @@ for i in 03 06 07 08 13 16 19 40; do
     flye --nano-hq /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq --out-dir ./MO_${i}_flye --threads 16 -g 129m;
 done
 ```
+## STEP 9: Polishing using MEDAKA
+MEDAKA is used to polish the assembled genome using the filtered reads (MO_${i}cat_fil.fastq). The polished assembly results are saved to the directory ./MO${i}_flye_medaka.
 
+```bash
+for i in 03 04 05 07 08 13 16 19; do
+    medaka_consensus -t $SLURM_CPUS_PER_TASK -i /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq -d MO_${i}_flye/assembly.fasta -o MO_${i}_flye_medaka ;
+done
+```
+## STEP 10: Remove haplotigs and contig overlaps using purge_dups
 
+For this step, the output from MEDAKA is used. The following code demonstrates the process for one sample, which is similarly applied to other samples.
+
+#### 1. Convert the BAM file produced in MEDAKA to PAF file
+
+**BAM to SAM:**
+
+```bash
+samtools view -@ 8 -h calls_to_draft.bam > calls_to_draft.sam
+```
+**SAM to PAF using paftools.js:**
+```bash
+paftools.js sam2paf calls_to_draft.sam > MO_40.paf
+```
+#### 2. Load purge_dups in NeSI and execute the following commands
+`Generate statistics for PAF file:`
+```bash
+pbcstat MO_40.paf
+```
+`Calculate cutoffs:`
+```bash
+calcuts PB.stat > cutoffs 2> calcuts.log
+```
+`Split the consensus fasta file:`
+```bash
+split_fa ../consensus.fasta > con_split.fa
+```
+`Generate self-mapping PAF file:`
+```bash
+minimap2 -xasm5 -DP con_split.fa con_split.fa | gzip -c - > con_split.self.paf.gz
+```
+`Purge duplicates:`
+```bash
+purge_dups -2 -T cutoffs -c PB.base.cov con_split.self.paf.gz > dups.bed 2> purge_dups.log
+```
+`Extract sequences:`
+```bash
+get_seqs -e dups.bed ../consensus.fasta
+```
+Two files are produced: purged.fa and hap.fa. The former is used for further analysis.
+
+Refer to this link for more information: [purge_dups GitHub](https://github.com/dfguan/purge_dups) & [purge_dups academic paper](https://academic.oup.com/bioinformatics/article-pdf/36/9/2896/48986490/btaa025.pdf).
+
+## STEP 11: BUSCO Assessment using CompleASM
+
+In this step, BUSCO assessment is performed on the polished assemblies using CompleASM. Here I am not downloading the specific lineage database. Instead, I have mentioned the lineage database using the “-l” flag, which automatically downloads the required files.
+
+```bash
+for i in 03 06 07 08 13 16 19 40; do
+    compleasm.py run -a MO_${i}_purged/purged.fasta -o MO_${i}_compleasm -l hymenoptera_odb10 -t 12 ;
+done
+```
+## STEP 12: QC using QUAST
+
+###Individual quast
+```bash
+for i in 03 06 07 08 13 16 19 40; do
+quast.py --fragmented -t 16 -o ./MO_${i}_purged/01_quast -r ../../../06_reference/ncbi_dataset/data/GCA_030347275.1/GCA_030347275.1_UoO_Maeth_IR_genomic.fna MO_${i}_purged/purged.fasta;
+done
+```
 
 
 
