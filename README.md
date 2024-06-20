@@ -1,5 +1,5 @@
 # Genome_assembly
-This repository contains bash scripts used for the genome assembly of different strains of *Microctonus aethiopoides*. The scripts facilitate various stages of the genome assembly process, including quality control, read trimming, assembly, and post-assembly analysis.
+This repository contains bash scripts used for the genome assembly of different strains of *Microctonus aethiopoides*. The scripts facilitate various stages of the genome assembly process, including basecalling, demultiplexing, quality control, read trimming, assembly, and post-assembly analysis.
 
 # NANOPORE BASECALLING & DEMULTIPLEXING
 Eight *M. aethiopoides* strains were sequenced using both ONT and Illumina sequencing platforms. ONT was used for genome assembly, while Illumina was used for polishing. For ONT, two libraries were made, resulting in two datasets (R0119, R0120). Basecalling is done individually on each library. Conversly, two samples (MO_04 and MO_05) did not produce good quality data, so a replacement library (R0149) with two new samples was sequenced. In the following steps, MO_04 and MO_05 will not be represented in the codes.
