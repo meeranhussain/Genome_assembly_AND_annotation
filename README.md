@@ -198,8 +198,9 @@ Two files are produced: purged.fa and hap.fa. The former is used for further ana
 
 Refer to this link for more information: [purge_dups GitHub](https://github.com/dfguan/purge_dups) & [purge_dups academic paper](https://academic.oup.com/bioinformatics/article-pdf/36/9/2896/48986490/btaa025.pdf).
 
-## STEP 11: BUSCO Assessment using CompleASM
+## STEP 11: QC using CompleASM and QUAST
 
+### Compleasm
 In this step, BUSCO assessment is performed on the polished assemblies using CompleASM. Here I am not downloading the specific lineage database. Instead, I have mentioned the lineage database using the “-l” flag, which automatically downloads the required files.
 
 ```bash
@@ -207,13 +208,20 @@ for i in 03 06 07 08 13 16 19 40; do
     compleasm.py run -a MO_${i}_purged/purged.fasta -o MO_${i}_compleasm -l hymenoptera_odb10 -t 12 ;
 done
 ```
-## STEP 12: QC using QUAST
+### QUAST
+QUAST (Quality Assessment Tool for Genome Assemblies) is a software tool used for evaluating the quality of genome assemblies. It provides various metrics such as N50, number of contigs, genome size, and misassemblies that is used to assess and compare the accuracy and completeness of assembled genomes. QUAST also generates informative visualizations to facilitate the interpretation of assembly results.
 
-###Individual quast
+**Individual quast**
+Here I used the closet reference genome(optional) for the comparative evaluation of individual genome
 ```bash
 for i in 03 06 07 08 13 16 19 40; do
 quast.py --fragmented -t 16 -o ./MO_${i}_purged/01_quast -r ../../../06_reference/ncbi_dataset/data/GCA_030347275.1/GCA_030347275.1_UoO_Maeth_IR_genomic.fna MO_${i}_purged/purged.fasta;
 done
+```
+**Comparative quast**
+Compare stats of all the assembly produced
+```bash
+quast.py -t 16 -o ./01_quast_compare -l 'MO_03,MO_06,MO_07,MO_08,MO_13,MO_16,MO_19,MO_40'  MO_03_purged/purged.fasta MO_06_purged/purged.fasta MO_07_purged/purged.fasta MO_08_purged/purged.fasta MO_13_purged/purged.fasta MO_16_purged/purged.fasta MO_19_purged/purged.fasta MO_40_purged/purged.fasta
 ```
 
 
