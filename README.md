@@ -83,9 +83,9 @@ Tool used here is SAMtools "fastq". Unmapped individual BAM files are transforme
 
 ```bash
 #### Library : R0119
-for i in 03 04 05 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
+for i in 03 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
 ### Library : R0120
-for i in 03 04 05 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
+for i in 03 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
 ### Library : R0149
 for i in 06 40; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
 ```
@@ -94,11 +94,61 @@ During this step, the samples from libraries R0119 and R0120 are combined:
 
 ```bash
 cat ../04_demux_sample/R0119/01_fastq_files/MO_03.fastq ../04_demux_sample/R0120/01_fastq_files/MO_03.fastq > MO_03_cat.fastq
-cat ../04_demux_sample/R0119/01_fastq_files/MO_04.fastq ../04_demux_sample/R0120/01_fastq_files/MO_04.fastq > MO_04_cat.fastq
-cat ../04_demux_sample/R0119/01_fastq_files/MO_05.fastq ../04_demux_sample/R0120/01_fastq_files/MO_05.fastq > MO_05_cat.fastq
 cat ../04_demux_sample/R0119/01_fastq_files/MO_07.fastq ../04_demux_sample/R0120/01_fastq_files/MO_07.fastq > MO_07_cat.fastq
 cat ../04_demux_sample/R0119/01_fastq_files/MO_08.fastq ../04_demux_sample/R0120/01_fastq_files/MO_08.fastq > MO_08_cat.fastq
 cat ../04_demux_sample/R0119/01_fastq_files/MO_13.fastq ../04_demux_sample/R0120/01_fastq_files/MO_13.fastq > MO_13_cat.fastq
 cat ../04_demux_sample/R0119/01_fastq_files/MO_16.fastq ../04_demux_sample/R0120/01_fastq_files/MO_16.fastq > MO_16_cat.fastq
 cat ../04_demux_sample/R0119/01_fastq_files/MO_19.fastq ../04_demux_sample/R0120/01_fastq_files/MO_19.fastq > MO_19_cat.fastq
 ```
+This concatenation process merges the corresponding samples from libraries R0119 and R0120 into single FASTQ files (e.g., MO_03_cat.fastq, MO_07_cat.fastq, etc.).
+
+## STEP 5: QC of fastq files
+
+Tool used is NanoPlot & BBMap.
+
+#### NanoPlot Syntax:
+
+```bash
+for i in 03 06 07 08 13 16 19 40;
+do 
+NanoPlot --verbose -t 8 --fastq MO_${i}_cat.fastq -o 01_QC/MO_${i} ;
+done;
+```
+#### BBMap Syntax:
+
+```bash
+for i in 03 06 07 08 13 16 19 40;
+do 
+readlength.sh in=${i}_cat_fil.fastq out=${i}_histogram.txt
+done;
+```
+This step involves using NanoPlot to perform quality checks on the FASTQ files. The BBMap tool is also utilized to check the read length statistics for specific files.
+
+## STEP 6: Filtering reads using chopper
+
+This step involves using chopper to filter reads based on quality (minimum quality score of 10) and read length (minimum length of 500 bases). The --headcrop 10 parameter is used to remove the first 10 bases from each read. The filtered reads are then saved to new FASTQ files (e.g., MO_${i}_cat_fil.fastq) for each sample.
+
+```bash
+for i in 03 06 07 08 13 16 19 40;
+do 
+chopper --threads $SLURM_CPUS_PER_TASK -q 10 -l 500 --headcrop 10 < ../MO_${i}_cat.fastq > MO_${i}_cat_fil.fastq ;
+done;
+```
+
+## STEP 7: Repeat Quality Check (NanoPlot, BBMap, FastQC)
+Repeat previous QC steps on filtered fastq files.
+
+## STEP 8: Genome Assembly using FLYE
+In this step, FLYE is used for genome assembly using the cleaned reads (MO_${i}cat_fil.fastq). The assembly results are saved to the directory (./MO${i}_flye). The --threads 16 option is used to specify the number of threads , and -g 129m specifies an estimated genome size of 129 megabases (`varies based on species`).
+
+```bash
+for i in 03 06 07 08 13 16 19 40; do
+    flye --nano-hq /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq --out-dir ./MO_${i}_flye --threads 16 -g 129m;
+done
+```
+
+
+
+
+
+
