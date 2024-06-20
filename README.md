@@ -13,8 +13,7 @@ Files received after sequencing are POD5 files (similar to fast5 files).
 Tool used is Dorado with simplex "basecaller" super accuracy model (sup).
 
 ### Sample Sheet Format
-Dorado requires a sample sheet, which has to be in the following format. Note that the "alias" column information will be used to produce output filenames for each sample in a library.
-
+Dorado requires a sample sheet, which has to be in the following format.
 #### Sample Sheet 1: R0119
 
 | kit            | experiment_id | flow_cell_id | barcode  | alias |
