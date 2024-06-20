@@ -9,7 +9,7 @@ Files received after sequencing are POD5 files (similar to fast5 and blow5 files
    - Fast5, BLOW5 = OLD versions
    - POD5 = NEW version
 
-## STEP 1: Basecalling
+## STEP 1: ONT reads Basecalling
 Tool used is Dorado with simplex "basecaller" super accuracy model (sup).
 
 ### Sample Sheet Format
