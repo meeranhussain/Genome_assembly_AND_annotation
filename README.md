@@ -89,3 +89,16 @@ for i in 03 04 05 07 08 13 16 19; do samtools fastq MO_${i}.bam > MO_${i}.fastq 
 ### Library : R0149
 for i in 06 40; do samtools fastq MO_${i}.bam > MO_${i}.fastq ; done;
 ```
+## Step 4: Concatenate R0119 and R0120
+During this step, the samples from libraries R0119 and R0120 are combined:
+
+```bash
+cat ../04_demux_sample/R0119/01_fastq_files/MO_03.fastq ../04_demux_sample/R0120/01_fastq_files/MO_03.fastq > MO_03_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_04.fastq ../04_demux_sample/R0120/01_fastq_files/MO_04.fastq > MO_04_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_05.fastq ../04_demux_sample/R0120/01_fastq_files/MO_05.fastq > MO_05_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_07.fastq ../04_demux_sample/R0120/01_fastq_files/MO_07.fastq > MO_07_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_08.fastq ../04_demux_sample/R0120/01_fastq_files/MO_08.fastq > MO_08_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_13.fastq ../04_demux_sample/R0120/01_fastq_files/MO_13.fastq > MO_13_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_16.fastq ../04_demux_sample/R0120/01_fastq_files/MO_16.fastq > MO_16_cat.fastq
+cat ../04_demux_sample/R0119/01_fastq_files/MO_19.fastq ../04_demux_sample/R0120/01_fastq_files/MO_19.fastq > MO_19_cat.fastq
+```
