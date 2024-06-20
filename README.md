@@ -224,6 +224,23 @@ Compare stats of all the assembly produced
 quast.py -t 16 -o ./01_quast_compare -l 'MO_03,MO_06,MO_07,MO_08,MO_13,MO_16,MO_19,MO_40'  MO_03_purged/purged.fasta MO_06_purged/purged.fasta MO_07_purged/purged.fasta MO_08_purged/purged.fasta MO_13_purged/purged.fasta MO_16_purged/purged.fasta MO_19_purged/purged.fasta MO_40_purged/purged.fasta
 ```
 
+# Processing Illumina Reads
+## STEP 12: Concatebating Fastq files
+The samples in Novoseq are run in two lanes. Therefore, once the data is received, samples from replicate lanes are combined using the `cat` command.
+
+**Script for Concatenating Illumina FASTQ Reads from Two Lanes**
+```bash
+# Loop through all FASTQ.gz files recursively in the current directory
+for i in $(find ./ -type f -name "*.fastq.gz" | while read F; do basename $F | rev | cut -c 22- | rev; done | sort | uniq)
+do 
+    echo "Merging R1"
+    cat "$i"_L00*_R1_001.fastq.gz > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R1.fastq.gz
+    echo "Merging R2"
+    cat "$i"_L00*_R2_001.fastq.gz > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R2.fastq.gz
+done
+```
+## STEP 13: Quality check using Fastqc & Multiqc
+
 
 
 
