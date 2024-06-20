@@ -5,9 +5,9 @@ This repository contains bash scripts used for the genome assembly and annotatio
 Eight *M. aethiopoides* strains were sequenced using both ONT and Illumina sequencing platforms. ONT was used for genome assembly, while Illumina was used for polishing. For ONT, two libraries were made, resulting in two datasets (R0119, R0120). Basecalling is done individually on each library. Conversly, two samples (MO_04 and MO_05) did not produce good quality data, so a replacement library (R0149) with two new samples was sequenced. In the following steps, MO_04 and MO_05 will not be represented in the codes.
 
 
-Files received after sequencing are POD5 files (similar to fast5 files).
-   - Fast5 = OLD
-   - POD5 = NEW
+Files received after sequencing are POD5 files (similar to fast5 and blow5 files). It's like:
+   - Fast5, BLOW5 = OLD versions
+   - POD5 = NEW version
 
 ## STEP 1: Basecalling
 Tool used is Dorado with simplex "basecaller" super accuracy model (sup).
