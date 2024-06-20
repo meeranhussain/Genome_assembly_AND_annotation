@@ -78,7 +78,7 @@ dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/uow03744/PX0
 #### Library : R0149
 dorado demux --output-dir /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/02_demux_sample/R0149 --no-classify /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
 ```
-### STEP 3: BAM to Fastq conversion
+## STEP 3: BAM to Fastq conversion
 
 Tool used here is SAMtools "fastq". Unmapped individual BAM files are transformed into FASTQ files during this step.
 
