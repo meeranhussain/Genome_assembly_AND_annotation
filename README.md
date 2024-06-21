@@ -225,7 +225,7 @@ quast.py -t 16 -o ./01_quast_compare -l 'MO_03,MO_06,MO_07,MO_08,MO_13,MO_16,MO_
 ```
 
 # Processing Illumina Reads
-## STEP 12: Concatebating Fastq files
+## STEP 12: Concatenating Fastq files
 The samples in Novoseq are run in two lanes. Therefore, once the data is received, samples from replicate lanes are combined using the `cat` command.
 
 **Script for Concatenating Illumina FASTQ Reads from Two Lanes**
@@ -261,10 +261,10 @@ done
 NextPolish is a tool used for polishing genomes using Illumina reads. In the script, NextPolish is applied to the purged genome fasta file obtained from a previous step. The process involves the following steps:
 
 ### Process
-**Alignment:** The purged genome fasta file is indexed and aligned to filtered Illumina paired-end reads using `BWA-MEM`.
-**Alignment Processing:** The aligned reads are processed using `SAMtools` to remove duplicate reads, sort the alignments, and mark duplicates.
-**Polishing Round 1:** `NextPolish` is used with specific parameters (-t 1) to polish the genome based on the alignments from the first round. This step generates a temporary polished genome file (genome.polishtemp.fa).
-**Polishing Round 2:** The temporary polished genome file from Round 1 is indexed and aligned again to the Illumina reads. `NextPolish` is then applied again (-t 2) to perform a second round of polishing, resulting in the final polished genome file **(genome.nextpolish.fa)**.
+-   **Alignment:** The purged genome fasta file is indexed and aligned to filtered Illumina paired-end reads using `BWA-MEM`.
+-   **Alignment Processing:** The aligned reads are processed using `SAMtools` to remove duplicate reads, sort the alignments, and mark duplicates.
+-   **Polishing Round 1:** `NextPolish` is used with specific parameters (-t 1) to polish the genome based on the alignments from the first round. This step generates a temporary polished genome file (genome.polishtemp.fa).
+-   **Polishing Round 2:** The temporary polished genome file from Round 1 is indexed and aligned again to the Illumina reads. `NextPolish` is then applied again (-t 2) to perform a second round of polishing, resulting in the final polished genome file **(genome.nextpolish.fa)**.
 
 ```bash
 
