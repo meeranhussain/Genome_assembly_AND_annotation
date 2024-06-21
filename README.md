@@ -241,6 +241,75 @@ done
 ```
 ## STEP 13: Quality check using Fastqc & Multiqc
 
+**Fastqc**
+fastqc -t 8 -o 00_QC/fastqc/ /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/*.fastq.gz
 
+**MultiQC**
+multiqc /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data
 
+## STEP 14: Filtration using TrimGalore
+I performed quality trimming of bases with a Phred score of 20 and below.
 
+```bash
+for i in MI-19 MI-03 MI-07 MI-08 MI-13 MI-16 MI-40  MI-06;
+do
+    trim_galore -q 20 --paired --fastqc --cores 20 ${i}_R1.fastq.gz ${i}_R2.fastq.gz -o ../03_fil_data;
+done
+```
+## STEP 15: Genome Polishing using Illumina Reads
+
+NextPolish is a tool used for polishing genomes using Illumina reads. In the script, NextPolish is applied to the purged genome fasta file obtained from a previous step. The process involves the following steps:
+
+### Process
+**Alignment:** The purged genome fasta file is indexed and aligned to filtered Illumina paired-end reads using `BWA-MEM`.
+**Alignment Processing:** The aligned reads are processed using `SAMtools` to remove duplicate reads, sort the alignments, and mark duplicates.
+**Polishing Round 1:** `NextPolish` is used with specific parameters (-t 1) to polish the genome based on the alignments from the first round. This step generates a temporary polished genome file (genome.polishtemp.fa).
+**Polishing Round 2:** The temporary polished genome file from Round 1 is indexed and aligned again to the Illumina reads. `NextPolish` is then applied again (-t 2) to perform a second round of polishing, resulting in the final polished genome file **(genome.nextpolish.fa)**.
+
+```bash
+
+for sam in 03 07 08 13 16 19 06 40;
+do
+    ##########
+    # PARAMS #
+    INDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/03_fil_data/
+    read1=${INDIR}MI_${sam}_R1.fq.gz
+    read2=${INDIR}MI_${sam}_R2.fq.gz
+    OUTDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${sam}
+    REFDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/04_purg_dups/02_af_medaka/MO_${sam}/
+    REF=${REFDIR}MO_${sam}_purged.fasta
+    round=2
+    threads=20
+    NEXTPOLISH=/nesi/project/uow03744/softwares/NextPolish/lib/nextpolish1.py
+    #####################################################################
+    mkdir -p $OUTDIR
+    cd $OUTDIR
+    for ((i=1; i<=${round};i++)); do
+        # Step 1:
+        echo index the genome file and do alignment $i;
+        bwa index ${REF};
+        bwa mem -t ${threads} ${REF} ${read1} ${read2} | samtools view --threads 3 -F 0x4 -b - | samtools fixmate -m --threads 3 - - | samtools sort -m 2g --threads 5 - | samtools markdup --threads 5 -r - sgs.sort.bam;
+        echo index bam and genome files $i;
+        samtools index -@ ${threads} sgs.sort.bam;
+        samtools faidx ${REF};
+        echo polish genome file $i;
+        python ${NEXTPOLISH} -g ${REF} -t 1 -p ${threads} -s sgs.sort.bam > genome.polishtemp.fa;
+        REF=genome.polishtemp.fa;
+        echo round $i complete;
+        
+        # Step 2:
+        echo index genome file and do alignment $i;
+        bwa index ${REF};
+        bwa mem -t ${threads} ${REF} ${read1} ${read2} | samtools view --threads 3 -F 0x4 -b - | samtools fixmate -m --threads 3  - - | samtools sort -m 2g --threads 5 - | samtools markdup --threads 5 -r - sgs.sort.bam;
+        echo index bam and genome files $i;
+        samtools index -@ ${threads} sgs.sort.bam;
+        samtools faidx ${REF};
+        echo polish genome file $i;
+        python ${NEXTPOLISH} -g ${REF} -t 2 -p ${threads} -s sgs.sort.bam > genome.nextpolish.fa;
+        REF=genome.nextpolish.fa;
+        echo round $i complete;
+    done
+    echo genome polished for Maethio_${sam}
+done
+# Finally polished genome file: genome.nextpolish.fa
+```
