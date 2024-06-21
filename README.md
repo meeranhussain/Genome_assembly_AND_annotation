@@ -256,7 +256,7 @@ do
     trim_galore -q 20 --paired --fastqc --cores 20 ${i}_R1.fastq.gz ${i}_R2.fastq.gz -o ../03_fil_data;
 done
 ```
-## STEP 15: Genome Polishing using Illumina Reads
+## STEP 15: Nextpolish Genome Polishing using Illumina Reads
 
 NextPolish is a tool used for polishing genomes using Illumina reads. In the script, NextPolish is applied to the purged genome fasta file obtained from a previous step. The process involves the following steps:
 
