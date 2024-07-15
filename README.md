@@ -1,4 +1,4 @@
-# Exploring *Microctonus aethiopoides*: Genome Assembly and Annotation of Eight Ecotypes
+# Exploring *Microctonus aethiopoides*: Genome Assembly and Annotation of Eight Ecotypes (ONPROGRESS)
 This repository contains bash scripts used for the genome assembly and annotation of different strains of *Microctonus aethiopoides*. The scripts facilitate various stages of the genome assembly process, including basecalling, demultiplexing, quality control, read trimming, assembly, and post-assembly analysis.
 
 # Genome Assembly
