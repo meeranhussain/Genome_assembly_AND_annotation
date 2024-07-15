@@ -317,3 +317,92 @@ done
 ```
 ## STEP 16: Perform QC on polished assembly using Compleasm and Quast (Same as step 11)
 
+## Step 17: Kmer analysis using Illumina reads & Genome quality completeness estimation using Merqury
+
+1. **Create kmer database of high-quality Illumina reads using meryl**
+   - Steps to follow: [Merqury Meryl DB Preparation](https://github.com/marbl/merqury/wiki/1.-Prepare-meryl-dbs)
+  
+2. **Create histogram plot in Genomescope**
+   Generate histogram from meryl data
+   Example:
+   - `meryl histogram MO_03_k18.meryl > MO_03_k18.hist`
+
+   **Note:** The `.hist` file contains two columns separated by `\t` (TAB) which needs to be replaced by a space.
+   - `tr '\t' ' ' <MO_03_k18.hist > MO_03_k18_s.hist`
+   - Run GenomeScope by loading the `.hist` file at [GenomeScope](http://genomescope.org/)
+   - Adjust kmer length accordingly
+
+4. **Run merqury**
+```slurm
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=merqury
+#SBATCH --time=15:00:00
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=26G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output merqury_%j.out    # save the output into a file
+#SBATCH --error merqury_%j.err     # save the error output into a file
+
+# purge all other modules that may be loaded, and might interfare
+module purge
+## load module 
+module load Merqury/1.3-Miniconda3
+module load R
+# Need argparse, ggplot2, scales
+Rscript -e 'install.packages(c("argparse", "ggplot2", "scales"),repos = "http://cran.us.r-project.org")'
+
+module load SAMtools/1.19-GCC-12.3.0
+module load BEDTools/2.30.0-GCC-11.3.0
+module load Java/20.0.2
+module load IGV/2.16.1
+
+for i in 03 06 07 08 13 16 19 40;
+do
+mkdir Maethio_${i}/00_QC/02_merqury
+cd Maethio_${i}/00_QC/02_merqury
+#### Link files
+#meryl
+ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/00_QC/02_meryl/MI_${i}_k18.meryl
+#assembly
+ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
+####meryl count
+/nesi/project/uow03744/softwares/merqury-master/merqury.sh MI_${i}_k18.meryl genome.nextpolish.fa Maethio_${i}_nxtplsh_mqry
+cd ../../../
+done
+```
+
+## Step 19: KAT analysis (similar to merqury, uses Illumina reads)
+
+```slurm
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=kat_analysis
+#SBATCH --time=5:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=26G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output kat_analysis_%j.out    # save the output into a file
+#SBATCH --error kat_analysis_%j.err     # save the error output into a file
+
+# purge all other modules that may be loaded, and might interfere
+module purge
+ml KAT/2.4.2-gimkl-2018b-Python-3.7.3
+
+########## Loop ##############
+for i in 03 06 07 08 13 16 19 40;
+do
+    mkdir -p Maethio_${i}/00_QC/04_kat_results
+    cd Maethio_${i}/00_QC/04_kat_results
+    #### Link files
+    #assembly
+    #ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
+    ####kat command
+    kat comp -t 16 -o Mei_${i}_kat “/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_06_R?.fq.gz” genome.nextpolish.fa
+    cd ../../../
+done
+```
+
