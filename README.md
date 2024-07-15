@@ -373,7 +373,7 @@ cd ../../../
 done
 ```
 
-## Step 19: KAT analysis (similar to merqury, uses Illumina reads)
+## Step 18: KAT analysis (similar to merqury, uses Illumina reads)
 
 ```slurm
 #!/bin/bash -e
