@@ -211,14 +211,14 @@ done
 ### QUAST
 QUAST (Quality Assessment Tool for Genome Assemblies) is a software tool used for evaluating the quality of genome assemblies. It provides various metrics such as N50, number of contigs, genome size, and misassemblies that is used to assess and compare the accuracy and completeness of assembled genomes. QUAST also generates informative visualizations to facilitate the interpretation of assembly results.
 
-**Individual quast**
+**Individual Quast**
 Here I used the closet reference genome(optional) for the comparative evaluation of individual genome
 ```bash
 for i in 03 06 07 08 13 16 19 40; do
 quast.py --fragmented -t 16 -o ./MO_${i}_purged/01_quast -r ../../../06_reference/ncbi_dataset/data/GCA_030347275.1/GCA_030347275.1_UoO_Maeth_IR_genomic.fna MO_${i}_purged/purged.fasta;
 done
 ```
-**Comparative quast**
+**Comparative Quast**
 Compare stats of all the assembly produced
 ```bash
 quast.py -t 16 -o ./01_quast_compare -l 'MO_03,MO_06,MO_07,MO_08,MO_13,MO_16,MO_19,MO_40'  MO_03_purged/purged.fasta MO_06_purged/purged.fasta MO_07_purged/purged.fasta MO_08_purged/purged.fasta MO_13_purged/purged.fasta MO_16_purged/purged.fasta MO_19_purged/purged.fasta MO_40_purged/purged.fasta
@@ -241,13 +241,15 @@ done
 ```
 ## STEP 13: Quality check using Fastqc & Multiqc
 
+```bash
 **Fastqc**
 fastqc -t 8 -o 00_QC/fastqc/ /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/*.fastq.gz
 
 **MultiQC**
 multiqc /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data
+```
 
-## STEP 14: Filtration using TrimGalore
+## STEP 14: Illumina data Filtration using TrimGalore
 I performed quality trimming of bases with a Phred score of 20 and below.
 
 ```bash
@@ -313,3 +315,5 @@ do
 done
 # Finally polished genome file: genome.nextpolish.fa
 ```
+## STEP 16: Perform QC on polished assembly using Compleasm and Quast (Same as step 11)
+
