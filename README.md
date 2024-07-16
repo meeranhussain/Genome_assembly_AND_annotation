@@ -53,13 +53,13 @@ Note: The information in the 'alias' column will be used to produce output filen
 
 ```bash
 ### Library R0119
-dorado basecaller sup /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/R0119/LX0030/20240115_1457_1D_PAQ57576_8b278f23/pod5_pass --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0119.csv > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/BAM_basecall/R0119_sup_calls.bam
+dorado basecaller sup /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/R0119/LX0030/20240115_1457_1D_PAQ57576_8b278f23/pod5_pass --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0119.csv > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/BAM_basecall/R0119_sup_calls.bam
 
 ### Library R0120
-dorado basecaller sup /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/R0120/LX0030/20240117_1251_1D_PAQ57576_b43c06c8/pod5_pass --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0120.csv > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/BAM_basecall/R0120_sup_calls.bam
+dorado basecaller sup /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/R0120/LX0030/20240117_1251_1D_PAQ57576_b43c06c8/pod5_pass --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0120.csv > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/BAM_basecall/R0120_sup_calls.bam
 
 ### Library R0149
-dorado basecaller sup /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/03_R0149/LX0038/20240402_1733_1F_PAW14881_72e2c281/pod5_pass  --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0149.csv > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
+dorado basecaller sup /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/03_R0149/LX0038/20240402_1733_1F_PAW14881_72e2c281/pod5_pass  --recursive --device 'cuda:all' --kit-name SQK-NBD114-24 --sample-sheet sample_sheet_R0149.csv > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
 ```
 Note: In my case, two unmapped BAM files are produced after basecalling, one for each of the two libraries. Since running in slurm gpu node is activated using following in config section **"#SBATCH --gpus-per-node=A100:1"**
 
@@ -69,13 +69,13 @@ Tool used is Dorado "demux". This process separates individual samples into unma
 
 ```bash
 #### Library : R0119
-dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/BAM_basecall/R0119_sup_calls.bam
+dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/BAM_basecall/R0119_sup_calls.bam
 
 #### Library : R0120
-dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/BAM_basecall/R0120_sup_calls.bam
+dorado demux --output-dir demux_sample --no-classify /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/BAM_basecall/R0120_sup_calls.bam
 
 #### Library : R0149
-dorado demux --output-dir /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/02_demux_sample/R0149 --no-classify /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
+dorado demux --output-dir /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/02_Basecaller_sup/02_demux_sample/R0149 --no-classify /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/02_Basecaller_sup/01_BAM_basecall/R0149_sup_calls.bam
 ```
 ## STEP 3: BAM to Fastq conversion
 
@@ -143,7 +143,7 @@ In this step, FLYE is used for genome assembly using the cleaned reads (MO_${i}c
 
 ```bash
 for i in 03 06 07 08 13 16 19 40; do
-    flye --nano-hq /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq --out-dir ./MO_${i}_flye --threads 16 -g 129m;
+    flye --nano-hq /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq --out-dir ./MO_${i}_flye --threads 16 -g 129m;
 done
 ```
 ## STEP 9: Polishing using MEDAKA
@@ -151,7 +151,7 @@ MEDAKA is used to polish the assembled genome using the filtered reads (MO_${i}c
 
 ```bash
 for i in 03 04 05 07 08 13 16 19; do
-    medaka_consensus -t $SLURM_CPUS_PER_TASK -i /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq -d MO_${i}_flye/assembly.fasta -o MO_${i}_flye_medaka ;
+    medaka_consensus -t $SLURM_CPUS_PER_TASK -i /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq -d MO_${i}_flye/assembly.fasta -o MO_${i}_flye_medaka ;
 done
 ```
 ## STEP 10: Remove haplotigs and contig overlaps using purge_dups
@@ -234,19 +234,19 @@ The samples in Novoseq are run in two lanes. Therefore, once the data is receive
 for i in $(find ./ -type f -name "*.fastq.gz" | while read F; do basename $F | rev | cut -c 22- | rev; done | sort | uniq)
 do 
     echo "Merging R1"
-    cat "$i"_L00*_R1_001.fastq.gz > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R1.fastq.gz
+    cat "$i"_L00*_R1_001.fastq.gz > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R1.fastq.gz
     echo "Merging R2"
-    cat "$i"_L00*_R2_001.fastq.gz > /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R2.fastq.gz
+    cat "$i"_L00*_R2_001.fastq.gz > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R2.fastq.gz
 done
 ```
 ## STEP 13: Quality check using Fastqc & Multiqc
 
 ```bash
 **Fastqc**
-fastqc -t 8 -o 00_QC/fastqc/ /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/*.fastq.gz
+fastqc -t 8 -o 00_QC/fastqc/ /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/*.fastq.gz
 
 **MultiQC**
-multiqc /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data
+multiqc /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data
 ```
 
 ## STEP 14: Illumina data Filtration using TrimGalore
@@ -274,15 +274,15 @@ for sam in 03 07 08 13 16 19 06 40;
 do
     ##########
     # PARAMS #
-    INDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/03_fil_data/
+    INDIR=/nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/03_fil_data/
     read1=${INDIR}MI_${sam}_R1.fq.gz
     read2=${INDIR}MI_${sam}_R2.fq.gz
-    OUTDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${sam}
-    REFDIR=/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/04_purg_dups/02_af_medaka/MO_${sam}/
+    OUTDIR=/nesi/nobackup/acc_name/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${sam}
+    REFDIR=/nesi/nobackup/acc_name/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/04_purg_dups/02_af_medaka/MO_${sam}/
     REF=${REFDIR}MO_${sam}_purged.fasta
     round=2
     threads=20
-    NEXTPOLISH=/nesi/project/uow03744/softwares/NextPolish/lib/nextpolish1.py
+    NEXTPOLISH=/nesi/project/acc_name/softwares/NextPolish/lib/nextpolish1.py
     #####################################################################
     mkdir -p $OUTDIR
     cd $OUTDIR
@@ -335,7 +335,7 @@ done
 4. **Run merqury**
 ```slurm
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=acc_name
 #SBATCH --job-name=merqury
 #SBATCH --time=15:00:00
 #SBATCH --cpus-per-task=32
@@ -364,11 +364,11 @@ mkdir Maethio_${i}/00_QC/02_merqury
 cd Maethio_${i}/00_QC/02_merqury
 #### Link files
 #meryl
-ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/00_QC/02_meryl/MI_${i}_k18.meryl
+ln -s /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/00_QC/02_meryl/MI_${i}_k18.meryl
 #assembly
-ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
+ln -s /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
 ####meryl count
-/nesi/project/uow03744/softwares/merqury-master/merqury.sh MI_${i}_k18.meryl genome.nextpolish.fa Maethio_${i}_nxtplsh_mqry
+/nesi/project/acc_name/softwares/merqury-master/merqury.sh MI_${i}_k18.meryl genome.nextpolish.fa Maethio_${i}_nxtplsh_mqry
 cd ../../../
 done
 ```
@@ -377,7 +377,7 @@ done
 
 ```slurm
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=acc_name
 #SBATCH --job-name=kat_analysis
 #SBATCH --time=5:00:00
 #SBATCH --cpus-per-task=8
@@ -399,9 +399,9 @@ do
     cd Maethio_${i}/00_QC/04_kat_results
     #### Link files
     #assembly
-    #ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
+    #ln -s /nesi/nobackup//PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa
     ####kat command
-    kat comp -t 16 -o Mei_${i}_kat “/nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_06_R?.fq.gz” genome.nextpolish.fa
+    kat comp -t 16 -o Mei_${i}_kat “/nesi/nobackup/acc_name/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_06_R?.fq.gz” genome.nextpolish.fa
     cd ../../../
 done
 ```
