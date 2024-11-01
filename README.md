@@ -406,3 +406,315 @@ do
 done
 ```
 
+# Step 19: Scaffolding Using RagTag
+
+In this step, the polished genome is scaffolded using a reference genome with the **RagTag** tool.
+
+---
+
+### About RagTag
+
+**RagTag** is a genome scaffolding and assembly tool designed to use one genome assembly (usually a high-quality reference) to improve the structure of another (usually a draft genome). The main input and output for RagTag scaffolding are as follows:
+
+- **Input**:
+  - **Reference genome**: The high-quality genome assembly used to scaffold the draft genome.
+  - **Query genome**: The draft genome assembly to be scaffolded.
+
+- **Output**:
+  - **Scaffolded genome**: A new version of the draft genome with an improved structure based on the reference genome.
+
+---
+
+### SLURM Job Script for RagTag Scaffolding
+
+The following SLURM job script runs RagTag to scaffold multiple draft genomes using a reference genome:
+
+```bash
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=ragtag_scfld
+#SBATCH --time=10:00:00
+#SBATCH --cpus-per-task=8
+#SBATCH --ntasks-per-node=2
+#SBATCH --mem=26G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output ragtag_scfld_%j.out    # save the output into a file
+#SBATCH --error ragtag_scfld_%j.err     # save the error output into a file
+
+# purge all other modules that may be loaded, and might interfere
+module purge
+
+# Load necessary modules
+ml Python/3.11.6-foss-2023a
+ml minimap2/2.28-GCC-12.3.0
+ml unimap/0.1-GCC-11.3.0
+pip install RagTag
+
+# Run RagTag scaffolding
+for i in 03 06 07 08 13 16 19 40;
+do
+    mkdir -p 01_scaffold
+    mkdir -p 01_scaffold/Maethio_${i}
+    ragtag.py scaffold /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/06_reference/01_Maethio_IR/GCA_030347275.1_UoO_Maeth_IR_genomic.fna \
+    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa \
+    -o 01_scaffold/Maethio_${i}/
+done
+```
+
+# Step 20: Quality Control (QC) Steps - Merqury, KAT Analysis, Qualimap, Quast, Compleasm
+
+Perform QC on scaffolded genome using the tools mentioned below. Since BAM files are not generated in the previous scaffolding step, additional steps are required to create them for **Qualimap** analysis.
+
+---
+
+### QC Tools Overview (Steps on using these tools are described already, check above)
+
+- **Merqury**: Evaluates the quality of genome assemblies using k-mers from short reads to estimate assembly completeness and accuracy.
+- **KAT (K-mer Analysis Toolkit)**: Provides various tools for k-mer analysis of sequencing data, useful for genome assembly QC.
+- **Qualimap**: Performs quality control on BAM files, providing insights into coverage, GC content, and other sequencing metrics.
+- **Quast**: Assesses the accuracy and completeness of genome assemblies.
+- **Compleasm**: Used for completeness assessment in assemblies, helping verify if all genomic regions are covered.
+
+---
+
+### Step-by-Step Instructions for BAM File Generation and Qualimap Analysis
+
+To run **Qualimap** on scaffolded genome assemblies, align short reads to the scaffolded genome, generate BAM files, and perform **Qualimap bamqc** on the aligned files.
+
+```bash
+for i in 07 08 13 16 19 40;
+do
+    cd Maethio_${i};
+
+    # Index the scaffolded genome for alignment
+    bwa index ragtag.scaffold.fasta;
+
+    # Align reads to the scaffolded genome and process BAM file
+    bwa mem -t 24 ragtag.scaffold.fasta \
+    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R1.fq.gz \
+    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R2.fq.gz | \
+    samtools view --threads 16 -F 0x4 -b - | \
+    samtools fixmate -m --threads 16 - - | \
+    samtools sort -m 2g --threads 16 - | \
+    samtools markdup --threads 16 -r - 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam;
+
+    # Index the BAM file
+    samtools index -@ 24 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam -o 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam.bai;
+
+    # Perform Qualimap bamqc on the BAM file
+    /nesi/project/uow03744/softwares/qualimap_v2.3/qualimap bamqc \
+    -bam 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam \
+    -outdir 00_QC/04_qualimap \
+    -nt 16 --java-mem-size=8G;
+
+    cd ../;
+done
+```
+
+# Step 21: BlobToolKit for QC and Detecting Contamination in Assembly
+
+BlobToolKit is used here for quality control and to detect potential contamination in the genome assembly. Several files need to be generated for BlobToolKit to function effectively:
+  - **Blast output** (to identify taxonomic affiliations)
+  - **Aligned Nanopore reads** (BAM file with `.csi` index)
+  - **Assembly** (FASTA format)
+  - **BUSCO report** (CSV format)
+
+---
+
+## Steps for Generating Required Files
+
+### a) BLAST the Assembly Against the NT Database
+
+This step uses BLAST to align the scaffolded assembly to the nucleotide (nt) database, identifying likely taxonomic sources.
+
+#### SLURM Job Script for BLAST
+
+```bash
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=blastn
+#SBATCH --time=120:00:00
+#SBATCH --cpus-per-task=46
+#SBATCH --mem=120G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output Blastn_%j.out
+#SBATCH --error Blastn_%j.err
+
+# Purge any pre-loaded modules
+module purge
+
+# Load BLAST modules
+module load BLASTDB/2024-07 BLAST/2.13.0-GCC-11.3.0
+
+# Run BLAST for each scaffolded genome
+for i in 06 07 08 13 16 19 40; do 
+    blastn \
+    -query ./Maethio_${i}/ragtag.scaffold.fasta \
+    -task megablast \
+    -db nt \
+    -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' \
+    -culling_limit 10 \
+    -num_threads 42 \
+    -evalue 1e-3 \
+    -out ./Maethio_${i}/Maethio_${i}_megablast.out;
+done
+```
+#### a2) Alternative BLAST with GNU Parallel
+
+This method splits the assembly into smaller chunks and runs BLAST on each file in parallel, speeding up the process.
+
+```bash
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=blastn
+#SBATCH --time=48:00:00
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=80G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output Blastn_%j.out
+#SBATCH --error Blastn_%j.err
+
+# Purge all loaded modules
+module purge
+
+# Load BLAST and Parallel modules
+module load BLASTDB/2024-07 BLAST/2.13.0-GCC-11.3.0 
+module load Parallel/20220922 Python
+
+# Install biopython (required for splitting FASTA files)
+pip install biopython
+
+# Split the FASTA file by contigs
+python split_fasta_by_contigs.py ragtag.scaffold.fasta query_chunk 10
+
+# Run BLAST in parallel on each chunk
+ls query_chunk* | parallel "blastn -query {} -task megablast -db nt -outfmt '6 qseqid staxids bitscore std sscinames sskingdoms stitle' -culling_limit 10 -num_threads 4 -evalue 1e-3 -out {.}.out"
+
+# Combine all individual BLAST outputs into a single file
+cat query_chunk_*.out > Maethio_08_megablast.out
+
+```
+
+### b) Minimap2 to Align Long Reads to Scaffold
+
+This step uses Minimap2 to align Nanopore long reads to the scaffolded assembly. The genome results from previous QC steps are used for filtration.
+
+#### SLURM Job Script for Minimap2
+
+```bash
+#!/bin/bash -e
+#SBATCH --job-name=minimap
+#SBATCH --account=uow03744
+#SBATCH --cpus-per-task=12
+#SBATCH --mem=60G
+#SBATCH --time=24:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output minimap_%j.out
+#SBATCH --error minimap_%j.err
+
+# Load required modules
+ml SAMtools
+ml minimap2/2.28-GCC-12.3.0
+
+# Align long reads for each sample
+for i in 03 06 07 08 13 16 19 40; do
+    cd Maethio_${i}
+    
+    # Index the scaffolded genome
+    minimap2 -t 24 -x map-ont ragtag.scaffold.fasta -d ragtag.scaffold.mmi
+    
+    # Map long reads to the scaffold and create sorted BAM files
+    minimap2 -t 24 -ax map-ont ragtag.scaffold.mmi /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq | \
+    samtools view --threads 24 -F 0x4 -b - | \
+    samtools fixmate -m --threads 24 - - | \
+    samtools sort -m 2g --threads 24 - | \
+    samtools markdup --threads 24 -r - 00_QC/06_nanoreads_map/Maethio_${i}_sort.bam
+
+    # Index the sorted BAM file
+    samtools index -bc -@ 24 00_QC/06_nanoreads_map/Maethio_${i}_sort.bam -o 00_QC/06_nanoreads_map/Maethio_${i}_sort.bam.csi
+    
+    cd ../
+done
+```
+### c) BUSCO Analysis for Completeness
+
+In this step, BUSCO is run separately to assess genome completeness. This analysis checks for the presence of conserved single-copy orthologs, indicating the completeness of the genome assembly. Modifying the BUSCO output format may make it compatible with BlobToolKit.
+
+#### SLURM Job Script for BUSCO
+
+```bash
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=BUSCO
+#SBATCH --time=15:00:00
+#SBATCH --cpus-per-task=12
+#SBATCH --mem=10G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output BUSCO_%j.out
+#SBATCH --error BUSCO_%j.err
+
+# Purge any pre-loaded modules
+module purge
+
+# Load BUSCO module
+ml BUSCO/5.6.1-gimkl-2022a
+
+# Run BUSCO for each scaffolded genome
+for i in 03 06 07 08 13 16 19 40; do
+    busco -i Maethio_${i}/ragtag.scaffold.fasta -m genome -l hymenoptera_odb10 -c 24 -o Maethio_${i}/Maethio_${i}_busco
+done
+```
+
+### d) BlobToolKit Analysis
+
+BlobToolKit is used to create a dataset for visualizing genome assembly metrics such as coverage, GC content, and possible contamination. Refer to the [BlobToolKit NeSI guide](https://nesi.github.io/blobtools-jupyter-vdt/) for specific usage on the NeSI platform.
+
+#### Steps for BlobToolKit
+
+1. **Create Blob Dataset**
+
+   Use the following command to create a BlobToolKit dataset with BUSCO, FASTA, coverage, and BLAST hit data.
+
+   ```bash
+   blobtools create --busco Maethio_03_busco/run_hymenoptera_odb10/full_table.tsv --fasta ragtag.scaffold.fasta --cov Maethio_03_sort.bam --hits Maethio_03_megablast.out --replace --taxdump ../00_taxon Ma_USA
+   ```
+2. **View Blob Dataset**
+
+   To view the BlobToolKit dataset, use the host command to start a local server:
+
+   ```bash
+   blobtools host --port 8081 --api-port 9001 --hostname localhost Ma_USA/
+   ```
+
+   - **Download the Taxonomy Table: After starting the server, download the taxonomy table as "Ma_USA.csv"**
+   - **Explore Plots: Review plots for coverage, GC content, and taxonomic distribution; download any required visualizations.**
+
+# Step 22: Filtration of Scaffolded Genome Assembly Using Custom Script (Provided in this repository)
+
+The `Filter_assembly.sh` script is utilized to remove contaminants and filter out contigs that are less than 1000 bp in length from the scaffolded genome assembly. **If you need to remove contigs of greater length, modify script as needed**
+
+### Usage
+
+```bash
+./Filter_assembly.sh -i <fasta_file> -b <busco_file> -a <asm_stats_file> -f <blob_file> -o <output_name>
+```
+### Options
+
+- `-i <fasta_file>`: Path to the FASTA file.
+- `-b <busco_file>`: Path to the BUSCO file (use the `full_table.tsv` from BUSCO).
+- `-a <asm_stats_file>`: Path to the assembly stats file (e.g., `genome_results.txt` from Qualimap).
+- `-f <blob_file>`: Path to the blob file (table from BlobToolKit).
+- `-o <output_name>`: Desired name for the output file.
+- `-h`: Display this help message.
+
+> **Note:** It is recommended to run the script from the directory where you want to store the filtered FASTA file. Future improvements will aim to enhance the efficiency of this script.
+
+### Perform Quality Check of filtered assembly using previously mentioned QC tools
+
+After filtration, conduct quality control using tools like Qualimap and Compleasm to ensure that the genome assembly meets the desired quality standards.
+
