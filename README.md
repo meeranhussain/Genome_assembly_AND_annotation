@@ -718,7 +718,8 @@ The `Filter_assembly.sh` script is utilized to remove contaminants and filter ou
 After filtration, conduct quality control using tools like Qualimap and Compleasm to ensure that the genome assembly meets the desired quality standards.
 
 
-# STEP 23: REPEAT ANNOTATION
+# ANNOTATION
+# STEP 23: Repeat Annotation
 
 ## Rename Contig IDs
 
