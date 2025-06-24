@@ -17,7 +17,7 @@ Files received after sequencing are POD5 files (similar to fast5 and blow5 files
 - [STEP 4: Concatenate R0119 and R0120](#step-4-concatenate-r0119-and-r0120)
 - [STEP 5: QC of fastq files](#step-5-qc-of-fastq-files)
 - [STEP 6: Filtering reads using chopper](#step-6-filtering-reads-using-chopper)
-- [STEP 7: Repeat Quality Check (NanoPlot, BBMap, FastQC)](#step-7-repeat-quality-check-nanoplot,-bbmap,-fastqc)
+- [STEP 7: Repeat Quality Check (NanoPlot, BBMap, FastQC)](#step-7-repeat-quality-check)
 - [STEP 8: Genome Assembly using FLYE](#step-8-genome-assembly-using-flye)
 - [STEP 9: Polishing using MEDAKA](#step-9-polishing-using-medaka)
 - [STEP 10: Remove haplotigs and contig overlaps using purge_dups](#step-10-remove-haplotigs-and-contig-overlaps-using-purge_dups)
@@ -28,9 +28,9 @@ Files received after sequencing are POD5 files (similar to fast5 and blow5 files
 - [STEP 15: Nextpolish Genome Polishing using Illumina Reads](#step-15-nextpolish-genome-polishing-using-illumina-reads)
 - [STEP 16: Perform QC on polished assembly using Compleasm and Quast](#step-16-perform-qc-on-polished-assembly-using-compleasm-and-quast)
 - [STEP 17: Kmer analysis using Illumina reads & Genome quality completeness estimation using Merqury](#step-17-kmer-analysis-using-illumina-reads-and-genome-quality-completeness-estimation-using-merqury)
-- [STEP 18: KAT analysis (similar to merqury, uses Illumina reads)](#step-18-kat-analysis-similar-to-merqury,-uses-illumina-reads)
+- [STEP 18: KAT analysis (similar to merqury, uses Illumina reads)](#step-18-kat-analysis)
 - [STEP 19: Scaffolding Using RagTag](#step-19-scaffolding-using-ragtag)
-- [STEP 20: Quality Control (QC) Steps - Merqury, KAT Analysis, Qualimap, Quast, Compleasm](#step-20-quality-control-qc-steps---merqury,-kat-analysis,-qualimap,-quast,-compleasm)
+- [STEP 20: Quality Control (QC) Steps - Merqury, KAT Analysis, Qualimap, Quast, Compleasm](#step-20-quality-control-steps)
 - [STEP 21: BlobToolKit for QC and Detecting Contamination in Assembly](#step-21-blobtoolkit-for-qc-and-detecting-contamination-in-assembly)
 - [STEP 22: Filtration of Scaffolded Genome Assembly Using Custom Script](#step-22-filtration-of-scaffolded-genome-assembly-using-custom-script)
 - [STEP 23: Repeat Annotation](#step-23-repeat-annotation)
@@ -165,8 +165,8 @@ chopper --threads $SLURM_CPUS_PER_TASK -q 10 -l 500 --headcrop 10 < ../MO_${i}_c
 done;
 ```
 
-## STEP 7: Repeat Quality Check (NanoPlot, BBMap, FastQC)
-Repeat previous QC steps on filtered fastq files.
+## STEP 7: Repeat Quality Check
+Repeat previous QC steps  (NanoPlot, BBMap, FastQC) on filtered fastq files.
 
 ## STEP 8: Genome Assembly using FLYE
 In this step, FLYE is used for genome assembly using the cleaned reads (MO_${i}cat_fil.fastq). The assembly results are saved to the directory (./MO${i}_flye). The --threads 16 option is used to specify the number of threads , and -g 129m specifies an estimated genome size of 129 megabases (`varies based on species`).
@@ -269,7 +269,7 @@ do
     cat "$i"_L00*_R2_001.fastq.gz > /nesi/nobackup/acc_name/PX024_Parasitoid_wasp/01_raw/04_LIC_Data/02_cat_data/"$i"_R2.fastq.gz
 done
 ```
-## STEP 13: Quality check using Fastqc & Multiqc
+## STEP 13: Quality check using Fastqc and Multiqc
 
 ```bash
 **Fastqc**
@@ -345,9 +345,10 @@ do
 done
 # Finally polished genome file: genome.nextpolish.fa
 ```
-## STEP 16: Perform QC on polished assembly using Compleasm and Quast (Same as step 11)
+## STEP 16: Perform QC on polished assembly using Compleasm and Quast
+Repeat Step 11
 
-## Step 17: Kmer analysis using Illumina reads & Genome quality completeness estimation using Merqury
+## Step 17: Kmer analysis using Illumina reads and Genome quality completeness estimation using Merqury
 
 1. **Create kmer database of high-quality Illumina reads using meryl**
    - Steps to follow: [Merqury Meryl DB Preparation](https://github.com/marbl/merqury/wiki/1.-Prepare-meryl-dbs)
@@ -403,8 +404,8 @@ cd ../../../
 done
 ```
 
-## Step 18: KAT analysis (similar to merqury, uses Illumina reads)
-
+## Step 18: KAT analysis 
+Similar to merqury, uses Illumina reads
 ```slurm
 #!/bin/bash -e
 #SBATCH --account=acc_name
@@ -492,8 +493,8 @@ do
 done
 ```
 
-## Step 20: Quality Control (QC) Steps - Merqury, KAT Analysis, Qualimap, Quast, Compleasm
-
+## Step 20: Quality Control Steps 
+Merqury, KAT Analysis, Qualimap, Quast, Compleasm
 Perform QC on scaffolded genome using the tools mentioned below. Since BAM files are not generated in the previous scaffolding step, additional steps are required to create them for **Qualimap** analysis.
 
 ---
@@ -724,9 +725,9 @@ BlobToolKit is used to create a dataset for visualizing genome assembly metrics 
    - **Download the Taxonomy Table: After starting the server, download the taxonomy table as "Ma_USA.csv"**
    - **Explore Plots: Review plots for coverage, GC content, and taxonomic distribution; download any required visualizations.**
 
-# Step 22: Filtration of Scaffolded Genome Assembly Using Custom Script (Provided in this repository)
+# Step 22: Filtration of Scaffolded Genome Assembly Using Custom Script 
 
-The `Filter_assembly.sh` script is utilized to remove contaminants and filter out contigs that are less than 1000 bp in length from the scaffolded genome assembly. **If you need to remove contigs of greater length, modify script as needed**
+The `Filter_assembly.sh` script (Provided in this repository) is utilized to remove contaminants and filter out contigs that are less than 1000 bp in length from the scaffolded genome assembly. **If you need to remove contigs of greater length, modify script as needed**
 
 ### Usage
 
