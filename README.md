@@ -1023,3 +1023,58 @@ done
 - `--decorate_gff`: Annotates the GFF3 file with functional terms (e.g., GO terms, KEGG pathways, COGs).
 - `--cpu 22`: Number of threads used for parallel processing.
 - `--resume`: Resume the job if previously interrupted or partially completed.
+
+## Step 27: Submit InterProScan
+
+### Remove Asterisk (`*`) Stop Codon Symbols before Interproscan 
+
+BRAKER3 outputs protein sequences with an asterisk (`*`) at the end of each protein sequence to indicate a stop codon. These symbols must be removed before running InterProScan to prevent errors or misinterpretation of sequences.
+
+#### Command to Remove `*` from Sequences:
+```bash
+# Remove "*" from all sequences in the input FASTA file
+sed -e 's/*//g' Maethio_03_braker.aa_modified.faa > Maethio_03_final_fixed.faa
+```
+
+### Run InterProScan 
+The following SLURM batch script runs InterProScan with selected applications and includes gene ontology and pathway annotations. Ensure the cleaned protein file (*_final_fixed.faa) is used.
+```bash
+#!/bin/bash -e
+#SBATCH --account=uow03744
+#SBATCH --job-name=interproscan_06
+#SBATCH --time=5:00:00
+#SBATCH --cpus-per-task=24
+#SBATCH --mem=30G
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --output=eggnog_%j.out    # Save standard output to file
+#SBATCH --error=eggnog_%j.err     # Save error output to file
+
+# Clean environment
+module purge
+
+# Load required modules
+module load InterProScan/5.66-98.0-gimkl-2022a Perl-5.34.1 Python-3.11.3 PCRE2/10.42-GCCcore-12.3.0 GCC/11.3.0
+
+# Run InterProScan
+interproscan.sh \
+  -i Maethio_06_final_fixed.faa \
+  -t p \
+  -dp \
+  -appl Pfam,SMART,PrositeProfiles,Gene3D,SUPERFAMILY,PANTHER \
+  --goterms \
+  --pathways \
+  --iprlookup \
+  -cpu 22 \
+  -T temp/
+```
+##### Key Parameters Explained
+
+ - `-i`          : Input FASTA file (cleaned protein file)                            
+ - `-t p`        : Input type is protein                                              
+ - `-appl`       : Specifies which InterPro applications/databases to run             
+ - `--goterms`   : Include Gene Ontology term mappings                                
+ - `--pathways`  : Include pathway annotations (e.g., KEGG)                           
+ - `--iprlookup` : Enable InterPro cross-reference lookup                             
+ - `-cpu`        : Number of threads to use (adjust based on HPC allocation)          
+ - `-T temp/`    : Temporary working directory for InterProScan output and processing 
