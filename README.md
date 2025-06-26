@@ -372,7 +372,7 @@ Repeat Step 11
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=26G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output merqury_%j.out    # save the output into a file
 #SBATCH --error merqury_%j.err     # save the error output into a file
 
@@ -415,7 +415,7 @@ Similar to merqury, uses Illumina reads
 #SBATCH --ntasks-per-node=2
 #SBATCH --mem=26G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output kat_analysis_%j.out    # save the output into a file
 #SBATCH --error kat_analysis_%j.err     # save the error output into a file
 
@@ -462,14 +462,14 @@ The following SLURM job script runs RagTag to scaffold multiple draft genomes us
 
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=ragtag_scfld
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --ntasks-per-node=2
 #SBATCH --mem=26G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output ragtag_scfld_%j.out    # save the output into a file
 #SBATCH --error ragtag_scfld_%j.err     # save the error output into a file
 
@@ -487,8 +487,8 @@ for i in 03 06 07 08 13 16 19 40;
 do
     mkdir -p 01_scaffold
     mkdir -p 01_scaffold/Maethio_${i}
-    ragtag.py scaffold /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/06_reference/01_Maethio_IR/GCA_030347275.1_UoO_Maeth_IR_genomic.fna \
-    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa \
+    ragtag.py scaffold /nesi/nobackup/<>/PX024_Parasitoid_wasp/06_reference/01_Maethio_IR/GCA_030347275.1_UoO_Maeth_IR_genomic.fna \
+    /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/05_nextpolish/Maethio_${i}/genome.nextpolish.fa \
     -o 01_scaffold/Maethio_${i}/
 done
 ```
@@ -523,8 +523,8 @@ do
 
     # Align reads to the scaffolded genome and process BAM file
     bwa mem -t 24 ragtag.scaffold.fasta \
-    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R1.fq.gz \
-    /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R2.fq.gz | \
+    /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R1.fq.gz \
+    /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/02_fil_Illumina/MI_${i}_R2.fq.gz | \
     samtools view --threads 16 -F 0x4 -b - | \
     samtools fixmate -m --threads 16 - - | \
     samtools sort -m 2g --threads 16 - | \
@@ -534,7 +534,7 @@ do
     samtools index -@ 24 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam -o 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam.bai;
 
     # Perform Qualimap bamqc on the BAM file
-    /nesi/project/uow03744/softwares/qualimap_v2.3/qualimap bamqc \
+    /nesi/project/<>/softwares/qualimap_v2.3/qualimap bamqc \
     -bam 00_QC/04_qualimap/Maethio_${i}_sort_sfld.bam \
     -outdir 00_QC/04_qualimap \
     -nt 16 --java-mem-size=8G;
@@ -563,13 +563,13 @@ This step uses BLAST to align the scaffolded assembly to the nucleotide (nt) dat
 
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=blastn
 #SBATCH --time=120:00:00
 #SBATCH --cpus-per-task=46
 #SBATCH --mem=120G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output Blastn_%j.out
 #SBATCH --error Blastn_%j.err
 
@@ -598,13 +598,13 @@ This method splits the assembly into smaller chunks and runs BLAST on each file 
 
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=blastn
 #SBATCH --time=48:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=80G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output Blastn_%j.out
 #SBATCH --error Blastn_%j.err
 
@@ -638,12 +638,12 @@ This step uses Minimap2 to align Nanopore long reads to the scaffolded assembly.
 ```bash
 #!/bin/bash -e
 #SBATCH --job-name=minimap
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=60G
 #SBATCH --time=24:00:00
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output minimap_%j.out
 #SBATCH --error minimap_%j.err
 
@@ -659,7 +659,7 @@ for i in 03 06 07 08 13 16 19 40; do
     minimap2 -t 24 -x map-ont ragtag.scaffold.fasta -d ragtag.scaffold.mmi
     
     # Map long reads to the scaffold and create sorted BAM files
-    minimap2 -t 24 -ax map-ont ragtag.scaffold.mmi /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq | \
+    minimap2 -t 24 -ax map-ont ragtag.scaffold.mmi /nesi/nobackup/<>/PX024_Parasitoid_wasp/02_Basecaller_sup/03_fastqfiles/02_filtered/MO_${i}_cat_fil.fastq | \
     samtools view --threads 24 -F 0x4 -b - | \
     samtools fixmate -m --threads 24 - - | \
     samtools sort -m 2g --threads 24 - | \
@@ -679,13 +679,13 @@ In this step, BUSCO is run separately to assess genome completeness. This analys
 
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=BUSCO
 #SBATCH --time=15:00:00
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=10G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output BUSCO_%j.out
 #SBATCH --error BUSCO_%j.err
 
@@ -772,13 +772,13 @@ This step performs repeat identification and annotation using EDTA (Extensive de
 #### SLURM Job Script:
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=EDTA_03
 #SBATCH --time=25:00:00
 #SBATCH --cpus-per-task=36
 #SBATCH --mem=50G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=EDTA_03_%j.out
 #SBATCH --error=EDTA_03_%j.err
 
@@ -789,7 +789,7 @@ module purge
 ml EDTA/2.1.0
 
 # Run EDTA
-EDTA.pl --genome /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/07_rm_cont/Maethio_03/01_filtered_scfld/Maethio_03_scfld_fil_mod.fasta --threads 32 --sensitive 1
+EDTA.pl --genome /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/07_rm_cont/Maethio_03/01_filtered_scfld/Maethio_03_scfld_fil_mod.fasta --threads 32 --sensitive 1
 ```
 This step builds a TE library by identifying and classifying repeats in the genome. The output includes a custom .TElib.fa file that can be used for masking.
 
@@ -799,13 +799,13 @@ RepeatMasker was used separately for masking using the .TElib.fa file generated 
 #### SLURM Job Script:
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=Repeatmasker
 #SBATCH --time=48:00:00
 #SBATCH --cpus-per-task=36
 #SBATCH --mem=50G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=Repeatmasker_%j.out
 #SBATCH --error=Repeatmasker_%j.err
 
@@ -850,13 +850,13 @@ cat Arthropoda.fasta Uniprot_sprot.fasta > proteins.fasta
 #### SLURM Job Script:
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=braker_03
 #SBATCH --time=20:00:00
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=90G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=braker_%j.out
 #SBATCH --error=braker_%j.err
 
@@ -867,11 +867,11 @@ module purge
 ml Singularity/3.11.3
 
 # Link the masked genome and protein database
-ln -s /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/08_EDTA/Maethio_03/Maethio_03_scfld_fil_mod.fasta.masked ./Maethio_03_masked.fasta
+ln -s /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/08_EDTA/Maethio_03/Maethio_03_scfld_fil_mod.fasta.masked ./Maethio_03_masked.fasta
 ln -s ../proteins.fasta
 
 # Run BRAKER3
-singularity exec /nesi/project/uow03744/softwares/braker3.sif braker.pl \
+singularity exec /nesi/project/<>/softwares/braker3.sif braker.pl \
   --threads=12 \
   --genome=Maethio_03_masked.fasta \
   --prot_seq=proteins.fasta \
@@ -929,13 +929,13 @@ GeneValidator is used to assess the quality and biological plausibility of predi
 
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=genevalidator
 #SBATCH --time=110:00:00
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=250G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=genevalidator_%j.out
 #SBATCH --error=genevalidator_%j.err
 
@@ -950,7 +950,7 @@ ml BLAST/2.16.0-GCC-12.3.0
 
 # Run GeneValidator for each ecotype
 for i in 03 06 07 08 13 16 19 40 FRN MOR; do
-  /nesi/project/uow03744/softwares/genevalidator/genevalidator/bin/genevalidator \
+  /nesi/project/<>/softwares/genevalidator/genevalidator/bin/genevalidator \
     -d ./uniprot_sprot.fasta \
     --num_threads 24 \
     -m 8 \
@@ -969,7 +969,7 @@ done
 
 ## STEP 26: Functional Annotation
 
-**Tool Used**: [EggNOG-mapper v2.1.12](http://eggnog-mapper.embl.de/)  
+**Tool Used**: [EggNOG-mapper v2.1.12](http://eggnog-mapper.embl.de/), [Interproscan v5.66-98](https://www.ebi.ac.uk/interpro/search/sequence/)
 **Purpose**: Assign functional annotations (GO terms, KEGG pathways, COG categories, PFAM domains, etc.) to predicted proteins from structural annotation.
 
 ### Database Setup and Annotation Pipeline
@@ -977,13 +977,13 @@ done
 #### SLURM Job Script:
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=
 #SBATCH --job-name=eggnog
 #SBATCH --time=25:00:00
 #SBATCH --cpus-per-task=24
 #SBATCH --mem=15G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=eggnog_%j.out
 #SBATCH --error=eggnog_%j.err
 
@@ -1001,13 +1001,13 @@ for i in 03 06 07 08 13 16 19 40 FRN MOR; do
   # ln -s /path/to/braker.aa Maethio_${i}_protein.fa
 
   # Copy GFF3 file for functional annotation decoration
-  cp /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/09_annotation/01_str_anno/01_BRAKER/Maethio_${i}/braker/braker.gff3 ./Maethio_${i}_braker.gff3
+  cp /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/09_annotation/01_str_anno/01_BRAKER/Maethio_${i}/braker/braker.gff3 ./Maethio_${i}_braker.gff3
 
   # Run EggNOG-mapper
   emapper.py \
     -i Maethio_${i}_protein.fa \
     -o Maethio_${i}_eggnog \
-    --data_dir /nesi/nobackup/uow03744/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/09_annotation/03_eggnog/00_eggnog_db \
+    --data_dir /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/09_annotation/03_eggnog/00_eggnog_db \
     --decorate_gff Maethio_${i}_braker.gff3 \
     --cpu 22 \
     --resume
@@ -1024,7 +1024,7 @@ done
 - `--cpu 22`: Number of threads used for parallel processing.
 - `--resume`: Resume the job if previously interrupted or partially completed.
 
-## Step 27: Submit InterProScan
+##  InterProScan Annotation
 
 ### Remove Asterisk (`*`) Stop Codon Symbols before Interproscan 
 
@@ -1040,13 +1040,13 @@ sed -e 's/*//g' Maethio_03_braker.aa_modified.faa > Maethio_03_final_fixed.faa
 The following SLURM batch script runs InterProScan with selected applications and includes gene ontology and pathway annotations. Ensure the cleaned protein file (*_final_fixed.faa) is used.
 ```bash
 #!/bin/bash -e
-#SBATCH --account=uow03744
+#SBATCH --account=<>
 #SBATCH --job-name=interproscan_06
 #SBATCH --time=5:00:00
 #SBATCH --cpus-per-task=24
 #SBATCH --mem=30G
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=meeranhussain1996@gmail.com
+#SBATCH --mail-user=
 #SBATCH --output=eggnog_%j.out    # Save standard output to file
 #SBATCH --error=eggnog_%j.err     # Save error output to file
 
