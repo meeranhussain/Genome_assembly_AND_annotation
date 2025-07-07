@@ -789,7 +789,7 @@ module purge
 ml EDTA/2.1.0
 
 # Run EDTA
-EDTA.pl --genome /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/07_rm_cont/Maethio_03/01_filtered_scfld/Maethio_03_scfld_fil_mod.fasta --threads 32 --sensitive 1
+EDTA.pl --genome /nesi/nobackup/<>/PX024_Parasitoid_wasp/05_ncgenome/01_assembly/07_rm_cont/Maethio_03/01_filtered_scfld/Maethio_03_scfld_fil_mod.fasta --threads 32 --sensitive 1 --anno 1
 ```
 This step builds a TE library by identifying and classifying repeats in the genome. The output includes a custom .TElib.fa file that can be used for masking.
 
